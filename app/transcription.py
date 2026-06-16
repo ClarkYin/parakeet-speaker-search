@@ -16,7 +16,7 @@ def _get_deepgram_client():
     global _deepgram_client
     if _deepgram_client is None:
         from deepgram import DeepgramClient
-        _deepgram_client = DeepgramClient(settings.deepgram_api_key)
+        _deepgram_client = DeepgramClient(api_key=settings.deepgram_api_key)
     return _deepgram_client
 
 
