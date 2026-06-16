@@ -50,11 +50,11 @@ def save_utterances(db, file_id: str, utterances: list):
     for u, emb in zip(utterances, embeddings):
         emb_str = "[" + ",".join(str(x) for x in emb) + "]"
         db.execute(
-            text("""
+            text(f"""
                 INSERT INTO utterances
                     (file_id, speaker_label, start_sec, end_sec, text, embedding)
                 VALUES
-                    (:file_id, :speaker_label, :start_sec, :end_sec, :text, :emb::vector)
+                    (:file_id, :speaker_label, :start_sec, :end_sec, :text, '{emb_str}'::vector)
             """),
             {
                 "file_id": file_id,
@@ -62,7 +62,6 @@ def save_utterances(db, file_id: str, utterances: list):
                 "start_sec": u["start_sec"],
                 "end_sec": u["end_sec"],
                 "text": u["text"],
-                "emb": emb_str,
             },
         )
     db.commit()

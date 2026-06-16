@@ -34,13 +34,13 @@ def semantic_search(
 ) -> list:
     embedding = _embed([query])[0]
     emb_str = "[" + ",".join(str(x) for x in embedding) + "]"
-    sql = """
+    sql = f"""
         SELECT id, file_id, speaker_label, start_sec, end_sec, text,
-               1 - (embedding <=> :emb::vector) AS score
+               1 - (embedding <=> '{emb_str}'::vector) AS score
         FROM utterances
         WHERE embedding IS NOT NULL
     """
-    params = {"emb": emb_str}
+    params = {}
     if file_id:
         sql += " AND file_id = :file_id"
         params["file_id"] = file_id
