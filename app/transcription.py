@@ -1,12 +1,12 @@
-from together import Together
+from groq import Groq
 from app.config import settings
 
 _client = None
 
-def _get_client() -> Together:
+def _get_client() -> Groq:
     global _client
     if _client is None:
-        _client = Together(api_key=settings.together_api_key)
+        _client = Groq(api_key=settings.groq_api_key)
     return _client
 
 def transcribe(audio_path: str) -> dict:
@@ -17,7 +17,7 @@ def transcribe(audio_path: str) -> dict:
     with open(audio_path, "rb") as f:
         response = client.audio.transcriptions.create(
             file=(audio_path.split("/")[-1], f),
-            model="nvidia/parakeet-tdt-0.6b-v3",
+            model="whisper-large-v3-turbo",
             response_format="verbose_json",
             timestamp_granularities=["word"],
         )
