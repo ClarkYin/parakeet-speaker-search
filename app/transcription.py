@@ -38,15 +38,21 @@ def _transcribe_groq(audio_path: str, model: str) -> dict:
 
 def _transcribe_deepgram(audio_path: str, model: str) -> dict:
     client = _get_deepgram_client()
-    from deepgram import PrerecordedOptions
     with open(audio_path, "rb") as f:
         audio_data = f.read()
-    response = client.listen.rest.v("1").transcribe_file(
-        {"buffer": audio_data, "mimetype": "audio/wav"},
-        PrerecordedOptions(model=model, smart_format=True, punctuate=True, words=True),
+    response = client.listen.v1.media.transcribe_file(
+        request=audio_data,
+        model=model,
+        smart_format=True,
+        punctuate=True,
     )
     alt = response.results.channels[0].alternatives[0]
-    words = [{"word": w.word, "start": w.start, "end": w.end} for w in (alt.words or [])]
+    words = []
+    for w in (alt.words or []):
+        word_text = w.word if hasattr(w, 'word') else w.get('word', '')
+        start = w.start if hasattr(w, 'start') else w.get('start', 0)
+        end = w.end if hasattr(w, 'end') else w.get('end', 0)
+        words.append({"word": word_text, "start": start, "end": end})
     return {"text": alt.transcript, "words": words}
 
 
