@@ -1,8 +1,15 @@
 def _find_speaker(word_mid: float, segments: list) -> str:
+    # First try exact containment
     for seg in segments:
         if seg["start"] <= word_mid <= seg["end"]:
             return seg["speaker"]
-    return "UNKNOWN"
+
+    # Fall back to nearest segment by distance from word midpoint
+    if not segments:
+        return "UNKNOWN"
+    nearest = min(segments, key=lambda s: min(abs(word_mid - s["start"]), abs(word_mid - s["end"])))
+    return nearest["speaker"]
+
 
 def merge(words: list, segments: list) -> list:
     """
