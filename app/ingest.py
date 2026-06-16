@@ -15,7 +15,7 @@ def extract_audio(file_path: str) -> str:
     )
     return out_path
 
-def run_pipeline(db, file_id: str, file_path: str):
+def run_pipeline(db, file_id: str, file_path: str, model: str = "groq/whisper-large-v3-turbo"):
     try:
         audio_path = extract_audio(file_path)
 
@@ -25,7 +25,7 @@ def run_pipeline(db, file_id: str, file_path: str):
 
         def do_transcribe():
             try:
-                transcript_result.update(transcribe(audio_path))
+                transcript_result.update(transcribe(audio_path, model=model))
             except Exception as e:
                 errors.append(e)
 

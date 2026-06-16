@@ -1,5 +1,5 @@
 import os
-from fastapi import APIRouter, UploadFile, File, HTTPException, Depends, BackgroundTasks
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Depends, BackgroundTasks
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from app.database import get_db
@@ -20,6 +20,7 @@ def _get_db():
 def upload_file(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
+    model: str = Form(default="groq/whisper-large-v3-turbo"),
     db: Session = Depends(_get_db),
 ):
     content = file.file.read()
@@ -31,9 +32,9 @@ def upload_file(
         f.write(content)
 
     file_id = save_file(db, filename=file.filename)
-    background_tasks.add_task(run_pipeline, db=db, file_id=file_id, file_path=file_path)
+    background_tasks.add_task(run_pipeline, db=db, file_id=file_id, file_path=file_path, model=model)
 
-    return {"file_id": file_id, "status": "processing"}
+    return {"file_id": file_id, "status": "processing", "model": model}
 
 
 @router.get("/{file_id}/status")
