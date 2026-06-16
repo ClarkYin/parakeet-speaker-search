@@ -1,5 +1,4 @@
 import os
-import pytest
 from unittest.mock import patch
 
 def test_config_loads_from_env():

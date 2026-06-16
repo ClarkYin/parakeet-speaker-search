@@ -17,6 +17,8 @@ def init_db():
     sql_path = os.path.join(os.path.dirname(__file__), "..", "scripts", "init_db.sql")
     with open(sql_path) as f:
         ddl = f.read()
+    statements = [s.strip() for s in ddl.split(";") if s.strip()]
     with engine.connect() as conn:
-        conn.execute(text(ddl))
+        for stmt in statements:
+            conn.execute(text(stmt))
         conn.commit()

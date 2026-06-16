@@ -25,4 +25,4 @@ CREATE INDEX IF NOT EXISTS utterances_file_id_idx ON utterances(file_id);
 CREATE INDEX IF NOT EXISTS utterances_speaker_idx ON utterances(speaker_label);
 CREATE INDEX IF NOT EXISTS utterances_fts_idx ON utterances USING GIN(text_tsv);
 CREATE INDEX IF NOT EXISTS utterances_embedding_idx
-    ON utterances USING ivfflat(embedding vector_cosine_ops) WITH (lists = 100);
+    ON utterances USING hnsw(embedding vector_cosine_ops);

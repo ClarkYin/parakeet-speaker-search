@@ -20,3 +20,4 @@ class Utterance:
     start_sec: float
     end_sec: float
     text: str
+    embedding: Optional[list[float]] = None  # 384-dim vector, DB-only for text_tsv
