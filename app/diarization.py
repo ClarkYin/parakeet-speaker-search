@@ -17,9 +17,10 @@ def diarize(audio_path: str) -> list[dict]:
     Returns [{"speaker": str, "start": float, "end": float}]
     """
     pipeline = _get_pipeline()
-    diarization = pipeline(audio_path)
+    result = pipeline(audio_path)
+    annotation = result.diarization if hasattr(result, 'diarization') else result
     segments = []
-    for turn, _, speaker in diarization.itertracks(yield_label=True):
+    for turn, _, speaker in annotation.itertracks(yield_label=True):
         segments.append({
             "speaker": speaker,
             "start": round(turn.start, 3),
