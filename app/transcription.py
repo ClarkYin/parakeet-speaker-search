@@ -21,8 +21,9 @@ def transcribe(audio_path: str) -> dict:
             response_format="verbose_json",
             timestamp_granularities=["word"],
         )
-    words = [
-        {"word": w.word, "start": w.start, "end": w.end}
-        for w in (response.words or [])
-    ]
+    def _w(w):
+        if isinstance(w, dict):
+            return {"word": w["word"], "start": w["start"], "end": w["end"]}
+        return {"word": w.word, "start": w.start, "end": w.end}
+    words = [_w(w) for w in (response.words or [])]
     return {"text": response.text, "words": words}
