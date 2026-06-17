@@ -7,7 +7,7 @@ On upload, the system SHALL run a fast rough transcription of the beginning of t
 #### Scenario: Upload starts inference and pauses for approval
 - **WHEN** a file is uploaded
 - **THEN** the system transcribes approximately the first 60 seconds using `groq/whisper-large-v3-turbo`
-- **AND** passes that rough text to an LLM to produce a 1–2 sentence context description
+- **AND** passes that rough text to an LLM to produce a short keyword-style context hint (topic plus likely names/jargon, not a narrative description)
 - **AND** stores the description on the file and sets the file status to `awaiting_approval`
 
 #### Scenario: Recording shorter than the sample window

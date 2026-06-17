@@ -1,9 +1,13 @@
 from app.config import settings
 
 SYSTEM_PROMPT = (
-    "Output ONLY a 1-2 sentence description of what the recording is about: "
-    "its topic, setting, and any names, jargon, or acronyms likely to appear. "
-    "Be descriptive, not a transcript. No preamble, no quotes, no markdown."
+    "You write a short transcription hint for a speech-to-text model. "
+    "From the rough transcript, output only the subject matter plus any specific "
+    "names, places, organizations, acronyms, or unusual/technical terms likely to "
+    "be spoken. Format as a brief topic phrase or comma-separated keywords, at most "
+    "about 25 words. Do NOT write full sentences. Do NOT describe the speaker, their "
+    "tone, mood, or style. No commentary, preamble, quotes, or markdown. If nothing "
+    "distinctive stands out, give just a short topic phrase."
 )
 
 _client = None
@@ -18,10 +22,12 @@ def _get_client():
 
 
 def infer_context(rough_text: str) -> str:
-    """Return a 1-2 sentence context description inferred from rough_text.
+    """Return a short, keyword-style context hint inferred from rough_text.
 
-    Returns "" (empty string) without raising on any failure, including an
-    empty/whitespace-only input or any exception from the Groq API.
+    The hint names the topic plus likely proper nouns/jargon (no narrative
+    sentences) so it can steer a speech-to-text decoder without being echoed
+    into the transcript. Returns "" (empty string) without raising on any
+    failure, including empty/whitespace input or any exception from the Groq API.
     """
     if not rough_text or not rough_text.strip():
         return ""
@@ -34,12 +40,13 @@ def infer_context(rough_text: str) -> str:
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": rough_text},
             ],
-            temperature=0.2,
-            max_tokens=120,
+            temperature=0.0,
+            max_tokens=80,
         )
         content = response.choices[0].message.content
         if content is None:
             return ""
-        return content.strip()
+        # Collapse any whitespace/newlines to single spaces (and strip).
+        return " ".join(content.split())
     except Exception:
         return ""

@@ -6,7 +6,7 @@
 
 ## 2. Context inference module
 
-- [x] 2.1 Create `app/context_inference.py` with `infer_context(rough_text: str) -> str` that calls Groq chat completions (`settings.inference_model`) with a fixed system prompt asking for a 1–2 sentence description of the recording's topic/setting/likely proper nouns
+- [x] 2.1 Create `app/context_inference.py` with `infer_context(rough_text: str) -> str` that calls Groq chat completions (`settings.inference_model`) with a fixed system prompt asking for a short keyword-style hint (topic + likely names/jargon), not a narrative description (narrative prompts get echoed into the transcript)
 - [x] 2.2 Make `infer_context` return `""` (not raise) when the Groq call fails, so Stage 1 stays non-fatal
 - [x] 2.3 Add `tests/test_context_inference.py` mocking the Groq client to assert the rough text is sent and the trimmed summary is returned, and that an exception yields `""`
 
