@@ -8,5 +8,6 @@ class Settings(BaseSettings):
     hf_token: str
     database_url: str
     deepgram_api_key: Optional[str] = None
+    inference_model: str = "llama-3.3-70b-versatile"
 
 settings = Settings()
