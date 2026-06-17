@@ -10,14 +10,14 @@ def _embed(texts: list) -> list:
         _model = SentenceTransformer("all-MiniLM-L6-v2")
     return _model.encode(texts).tolist()
 
-def save_file(db, filename: str, duration_sec: Optional[float] = None) -> str:
+def save_file(db, filename: str, duration_sec: Optional[float] = None, model: Optional[str] = None) -> str:
     row = db.execute(
         text("""
-            INSERT INTO files (filename, duration_sec)
-            VALUES (:filename, :duration_sec)
+            INSERT INTO files (filename, duration_sec, model)
+            VALUES (:filename, :duration_sec, :model)
             RETURNING id
         """),
-        {"filename": filename, "duration_sec": duration_sec},
+        {"filename": filename, "duration_sec": duration_sec, "model": model},
     ).fetchone()
     db.commit()
     return str(row[0])
