@@ -28,10 +28,12 @@ def test_merge_captures_timestamps():
     assert result[1]["start_sec"] == 5.3
     assert result[1]["end_sec"] == 6.5
 
-def test_merge_word_outside_all_segments_labeled_unknown():
+def test_merge_word_outside_all_segments_assigned_nearest():
     words = [{"word": "ghost", "start": 12.0, "end": 12.5}]
     result = merge(words, SEGMENTS)
-    assert result[0]["speaker_label"] == "UNKNOWN"
+    # No segment contains the word, so it falls back to the nearest segment
+    # (SPEAKER_01 ends at 10.0, closer than SPEAKER_00 ending at 5.0).
+    assert result[0]["speaker_label"] == "SPEAKER_01"
 
 def test_merge_empty_words_returns_empty():
     assert merge([], SEGMENTS) == []

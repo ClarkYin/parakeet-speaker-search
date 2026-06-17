@@ -30,7 +30,7 @@ def test_run_pipeline_calls_all_stages():
         run_pipeline(db=mock_db, file_id="f-123", file_path="/uploads/meeting.mp4")
 
     mock_extract.assert_called_once_with("/uploads/meeting.mp4")
-    mock_transcribe.assert_called_once_with("/tmp/audio.wav")
+    mock_transcribe.assert_called_once_with("/tmp/audio.wav", model="groq/whisper-large-v3-turbo")
     mock_diarize.assert_called_once_with("/tmp/audio.wav")
     mock_save.assert_called_once()
     mock_status.assert_called_with(mock_db, "f-123", "ready", speaker_count=2)

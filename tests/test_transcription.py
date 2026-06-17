@@ -14,7 +14,7 @@ def test_transcribe_returns_word_timestamps():
     mock_client = MagicMock()
     mock_client.audio.transcriptions.create.return_value = mock_response
 
-    with patch("app.transcription._get_client", return_value=mock_client):
+    with patch("app.transcription._get_groq_client", return_value=mock_client):
         result = transcribe("/tmp/audio.wav")
 
     assert result["text"] == "hello world"
@@ -34,10 +34,10 @@ def test_transcribe_passes_correct_model():
     mock_client = MagicMock()
     mock_client.audio.transcriptions.create.return_value = mock_response
 
-    with patch("app.transcription._get_client", return_value=mock_client):
+    with patch("app.transcription._get_groq_client", return_value=mock_client):
         transcribe("/tmp/audio.wav")
 
     call_kwargs = mock_client.audio.transcriptions.create.call_args.kwargs
-    assert call_kwargs["model"] == "nvidia/parakeet-tdt-0.6b-v3"
+    assert call_kwargs["model"] == "whisper-large-v3-turbo"
     assert call_kwargs["response_format"] == "verbose_json"
     assert "word" in call_kwargs["timestamp_granularities"]
