@@ -10,8 +10,13 @@ def _make_mock_pipeline(segments):
         (mock_turn(s, e), None, sp) for s, e, sp in segments
     ]
 
+    # Newer pyannote returns a DiarizeOutput wrapper whose `.speaker_diarization`
+    # holds the Annotation; diarize() reads that field.
+    result = MagicMock()
+    result.speaker_diarization = annotation
+
     mock_pipeline = MagicMock()
-    mock_pipeline.return_value = annotation
+    mock_pipeline.return_value = result
     return mock_pipeline
 
 def test_diarize_returns_speaker_segments():

@@ -7,6 +7,8 @@ CREATE TABLE IF NOT EXISTS files (
     speaker_count INTEGER,
     status      TEXT NOT NULL DEFAULT 'processing',
     error_message TEXT,
+    context     TEXT,
+    model       TEXT,
     created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 

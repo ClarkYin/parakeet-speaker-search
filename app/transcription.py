@@ -20,15 +20,18 @@ def _get_deepgram_client():
     return _deepgram_client
 
 
-def _transcribe_groq(audio_path: str, model: str) -> dict:
+def _transcribe_groq(audio_path: str, model: str, context: str | None = None) -> dict:
     client = _get_groq_client()
     with open(audio_path, "rb") as f:
-        response = client.audio.transcriptions.create(
+        kwargs = dict(
             file=(audio_path.split("/")[-1], f),
             model=model,
             response_format="verbose_json",
             timestamp_granularities=["word"],
         )
+        if context:
+            kwargs["prompt"] = context
+        response = client.audio.transcriptions.create(**kwargs)
     def _w(w):
         if isinstance(w, dict):
             return {"word": w["word"], "start": w["start"], "end": w["end"]}
@@ -36,7 +39,9 @@ def _transcribe_groq(audio_path: str, model: str) -> dict:
     return {"text": response.text, "words": [_w(w) for w in (response.words or [])]}
 
 
-def _transcribe_deepgram(audio_path: str, model: str) -> dict:
+def _transcribe_deepgram(audio_path: str, model: str, context: str | None = None) -> dict:
+    # `context` is accepted for signature parity but intentionally ignored:
+    # Deepgram has no free-text prompt equivalent, so we never forward it.
     client = _get_deepgram_client()
     with open(audio_path, "rb") as f:
         audio_data = f.read()
@@ -56,15 +61,19 @@ def _transcribe_deepgram(audio_path: str, model: str) -> dict:
     return {"text": alt.transcript, "words": words}
 
 
-def transcribe(audio_path: str, model: str = "groq/whisper-large-v3-turbo") -> dict:
+def transcribe(audio_path: str, model: str = "groq/whisper-large-v3-turbo",
+               context: str | None = None) -> dict:
     """
     model format: "provider/model-name"
     Supported: groq/whisper-large-v3-turbo, groq/whisper-large-v3, deepgram/nova-3
+    context: optional free-text description of the recording. For Groq Whisper it
+        is passed as the `prompt` parameter to steer the decoder toward expected
+        vocabulary; for Deepgram it is ignored. Empty/None preserves default behavior.
     Returns {"text": str, "words": [{"word": str, "start": float, "end": float}]}
     """
     provider, model_name = model.split("/", 1)
     if provider == "groq":
-        return _transcribe_groq(audio_path, model_name)
+        return _transcribe_groq(audio_path, model_name, context=context)
     elif provider == "deepgram":
-        return _transcribe_deepgram(audio_path, model_name)
+        return _transcribe_deepgram(audio_path, model_name, context=context)
     raise ValueError(f"Unknown provider: {provider!r}. Use 'groq' or 'deepgram'.")
