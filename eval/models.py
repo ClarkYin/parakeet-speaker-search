@@ -1,5 +1,5 @@
 from __future__ import annotations
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field
 from typing import Any
 
 
@@ -70,12 +70,26 @@ class NormalizedAudio:
     wav_path: str
     duration: float
 
+    def to_dict(self) -> dict[str, Any]:
+        return {"wav_path": self.wav_path, "duration": self.duration}
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "NormalizedAudio":
+        return cls(wav_path=d["wav_path"], duration=d["duration"])
+
 
 @dataclass
 class Chunk:
     path: str
     start: float
     end: float
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"path": self.path, "start": _r(self.start), "end": _r(self.end)}
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "Chunk":
+        return cls(path=d["path"], start=d["start"], end=d["end"])
 
 
 @dataclass
@@ -127,7 +141,16 @@ class EngineScore:
     cost_est: float | None = None
 
     def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+        return {
+            "engine_id": self.engine_id,
+            "cpwer": _r(self.cpwer),
+            "wer": _r(self.wer),
+            "cer": _r(self.cer),
+            "der": _r(self.der),
+            "speaker_count_err": self.speaker_count_err,
+            "rtf": _r(self.rtf),
+            "cost_est": _r(self.cost_est),
+        }
 
     @classmethod
     def from_dict(cls, d: dict) -> "EngineScore":
