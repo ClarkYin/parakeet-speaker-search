@@ -1136,7 +1136,6 @@ def test_deepgram_maps_words_with_speakers():
         out = Deepgram()._transcribe_chunk("/tmp/c.wav", 0.0)
     assert out.words[0].text == "hello"
     assert out.words[0].speaker == "SPEAKER_00"
-    assert out.diarizes is False or True  # attribute exists on class
 
 def test_deepgram_is_diarizer():
     assert Deepgram().diarizes is True
