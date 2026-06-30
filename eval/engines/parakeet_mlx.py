@@ -25,11 +25,32 @@ class ParakeetMLX(Engine):
 
     def _transcribe_chunk(self, wav_path: str, offset: float) -> TranscriptResult:
         result = _get_model().transcribe(wav_path)
-        words: list[Word] = []
-        for sentence in getattr(result, "sentences", []):
-            for tok in getattr(sentence, "tokens", []):
-                words.append(Word(tok.text.strip(), float(tok.start), float(tok.end)))
-        return TranscriptResult(self.id, result.text.strip(), words)
+        return TranscriptResult(self.id, result.text.strip(), _tokens_to_words(result))
+
+
+def _tokens_to_words(result) -> list[Word]:
+    """Regroup Parakeet's sub-word tokens into real words.
+
+    TDT tokens are sub-word pieces (e.g. ' G', 'ood', ' m', 'or', 'ning'); a
+    leading space marks the start of a new word. We accumulate pieces until the
+    next boundary, taking the word's start from its first token and end from its
+    last so word-level timestamps stay correct for windowing/attribution.
+    """
+    words: list[Word] = []
+    cur, start, end = "", None, None
+    for sentence in getattr(result, "sentences", []):
+        for tok in getattr(sentence, "tokens", []):
+            text = tok.text
+            if start is None or text.startswith(" "):
+                if cur.strip():
+                    words.append(Word(cur.strip(), start, end))
+                cur, start, end = text, float(tok.start), float(tok.end)
+            else:
+                cur += text
+                end = float(tok.end)
+    if cur.strip():
+        words.append(Word(cur.strip(), start, end))
+    return words
 
 
 register(ParakeetMLX())
