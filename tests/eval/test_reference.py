@@ -23,6 +23,22 @@ def test_rover_majority_vote():
     consensus = rover([a, b, c])
     assert [w.text for w in consensus] == ["the", "cat"]
 
+
+def _wl(s):
+    return [Word(w, i, i + 1) for i, w in enumerate(s.split())]
+
+
+def test_rover_votes_across_differing_lengths_not_longest_wins():
+    # Real ASR transcripts never share a length. The old positional-modal
+    # implementation just picked the first list; the alignment-based one must
+    # align and take the majority word even when lengths all differ.
+    a = _wl("the quick brown fox jumps")        # 5 words, the outlier ('quick')
+    b = _wl("the slow brown fox")               # 4 words
+    c = _wl("a the slow brown fox today")       # 6 words
+    consensus = " ".join(w.text for w in rover([a, b, c]))
+    assert "slow" in consensus
+    assert "quick" not in consensus
+
 def test_build_and_roundtrip_reference(tmp_path):
     tr = TranscriptResult("e", "", [Word("hello", 1.0, 1.5, "SPEAKER_00")])
     ref = build_reference("aud", [tr], [(0.0, 10.0)])

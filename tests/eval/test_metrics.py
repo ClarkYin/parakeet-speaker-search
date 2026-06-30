@@ -1,5 +1,5 @@
 from eval.models import Word, Segment
-from eval.metrics import wer, cer, cpwer, der, words_by_speaker
+from eval.metrics import wer, cer, cpwer, der, words_by_speaker, pairwise_wer
 
 def test_wer_identical_is_zero():
     assert wer("the quick brown fox", "the quick brown fox") == 0.0
@@ -32,3 +32,15 @@ def test_cpwer_penalizes_wrong_speaker():
 def test_der_identical_is_zero():
     segs = [Segment("SPEAKER_00", 0.0, 5.0), Segment("SPEAKER_01", 5.0, 10.0)]
     assert der(segs, segs) == 0.0
+
+def test_pairwise_wer_matrix():
+    named = {
+        "a": "the quick brown fox",
+        "b": "the quick brown fox",
+        "c": "the quick brown dog",
+    }
+    m = pairwise_wer(named)
+    assert m[("a", "b")] == 0.0          # identical
+    assert abs(m[("a", "c")] - 0.25) < 1e-9  # one of four words differs
+    assert ("a", "a") not in m           # no self-comparison
+    assert m[("a", "c")] == m[("c", "a")]  # symmetric

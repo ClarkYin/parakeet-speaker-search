@@ -19,6 +19,20 @@ def cer(reference: str, hypothesis: str) -> float:
     return float(jiwer.cer(ref, hyp))
 
 
+def pairwise_wer(named: dict[str, str]) -> dict[tuple[str, str], float]:
+    """WER of every transcript against every other (ref=first, hyp=second).
+
+    Needs no reference, so it measures genuine engine-to-engine divergence
+    without the circularity of scoring engines against a consensus built from
+    those same engines. The honest relative-ranking view.
+    """
+    ids = list(named)
+    return {
+        (a, b): wer(named[a], named[b])
+        for a in ids for b in ids if a != b
+    }
+
+
 def words_by_speaker(words: list[Word]) -> dict[str, str]:
     out: dict[str, list[str]] = {}
     for w in sorted(words, key=lambda x: x.start):

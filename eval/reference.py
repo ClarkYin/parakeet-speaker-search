@@ -1,7 +1,9 @@
 from __future__ import annotations
+import difflib
 import json
 from collections import Counter
 from eval.models import Word, Window, Reference, TranscriptResult
+from eval.normalize import normalize_text
 
 
 def _nearest(points: list[float], target: float) -> float:
@@ -29,16 +31,47 @@ def words_in_window(result: TranscriptResult, start: float, end: float) -> list[
 
 
 def rover(results: list[list[Word]]) -> list[Word]:
-    if not results:
+    """Align transcripts to a central pivot and take a per-position majority vote.
+
+    Real ASR transcripts never share a word count, so a positional vote across
+    equal-length lists degenerates to "pick one transcript". Instead we choose
+    the medoid (the transcript with the least total word-error distance to the
+    others) as the pivot, align every other transcript onto it, and vote per
+    pivot position. The result corrects pivot words wherever a majority of the
+    aligned transcripts agree on a different word — and is never just the
+    longest input.
+    """
+    import jiwer
+
+    groups = [r for r in results if r]
+    if not groups:
         return []
-    modal_len = Counter(len(r) for r in results).most_common(1)[0][0]
-    group = [r for r in results if len(r) == modal_len]
+    if len(groups) == 1:
+        return list(groups[0])
+
+    texts = [normalize_text(" ".join(w.text for w in r)) or " " for r in groups]
+    pivot_idx = min(
+        range(len(groups)),
+        key=lambda i: sum(jiwer.wer(texts[i], texts[j]) for j in range(len(groups)) if j != i),
+    )
+    pivot = groups[pivot_idx]
+    pivot_words = [w.text for w in pivot]
+    votes: list[list[str]] = [[w] for w in pivot_words]
+
+    for k, other in enumerate(groups):
+        if k == pivot_idx:
+            continue
+        other_words = [w.text for w in other]
+        matcher = difflib.SequenceMatcher(a=pivot_words, b=other_words, autojunk=False)
+        for tag, i1, i2, j1, j2 in matcher.get_opcodes():
+            if tag in ("equal", "replace"):
+                for off in range(min(i2 - i1, j2 - j1)):
+                    votes[i1 + off].append(other_words[j1 + off])
+
     consensus: list[Word] = []
-    for i in range(modal_len):
-        texts = [r[i].text for r in group]
-        winner = Counter(texts).most_common(1)[0][0]
-        src = next(r[i] for r in group if r[i].text == winner)
-        consensus.append(Word(winner, src.start, src.end, src.speaker))
+    for i, candidates in enumerate(votes):
+        winner = Counter(candidates).most_common(1)[0][0]
+        consensus.append(Word(winner, pivot[i].start, pivot[i].end, pivot[i].speaker))
     return consensus
 
 
